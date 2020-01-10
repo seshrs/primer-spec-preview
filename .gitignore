@@ -1,0 +1,11 @@
+node_modules
+.env
+
+previews/*
+!previews/.keep
+
+repos/*
+!repos/.keep
+
+archive
+.DS_Store
