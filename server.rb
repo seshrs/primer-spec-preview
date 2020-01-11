@@ -144,7 +144,19 @@ class GHAapp < Sinatra::Application
       Dir.chdir(@full_repo_name)
 
       # Build the Jekyll site
-      logs = `bundle install && pushd #{@site_location} && bundle exec jekyll build && popd`
+      logs = `bundle install`
+      if $?.exitstatus != 0
+        logger.debug "bundle install. Logs:"
+        logger.debug logs
+        update_gh_commit_status(head_sha, {
+          state: 'failure',
+          description: 'Site Preview build failed (while installing dependencies)',
+          context: 'site-preview',
+        })
+      end
+
+      Dir.chdir @site_location
+      logs = `bundle exec jekyll build`
       if $?.exitstatus != 0
         logger.debug "Jekyll build failed. Logs:"
         logger.debug logs
