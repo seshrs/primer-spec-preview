@@ -156,7 +156,7 @@ class GHAapp < Sinatra::Application
       end
 
       Dir.chdir @site_location
-      logs = `bundle exec jekyll build`
+      logs = `bundle exec jekyll build --baseurl #{build_preview_baseurl(@full_repo_name, pull_request_num)}`
       if $?.exitstatus != 0
         logger.debug "Jekyll build failed. Logs:"
         logger.debug logs
@@ -223,7 +223,11 @@ class GHAapp < Sinatra::Application
     end
 
     def build_preview_url(full_repo_name, pull_request_num)
-      "#{DEPLOY_URL}/#{full_repo_name}/#{pull_request_num}/"
+      "#{DEPLOY_URL}/previews/#{full_repo_name}/#{pull_request_num}/"
+    end
+
+    def build_preview_baseurl(full_repo_name, pull_request_num)
+      "/previews/#{full_repo_name}/#{pull_request_num}/"
     end
 
     def update_gh_commit_status(sha, payload)
