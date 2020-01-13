@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Much of the boilerplate code is derived from GitHub's sample:
+# Some of the boilerplate code is derived from GitHub's sample:
 # https://developer.github.com/apps/quickstart-guides/creating-ci-tests-with-the-checks-api
 #
 # Modified to create a staging environment for Primer Spec Pull Requests
@@ -16,6 +16,7 @@ require 'openssl'     # Verifies the webhook signature
 require 'jwt'         # Authenticates a GitHub App
 require 'time'        # Gets ISO 8601 representation of a Time object
 require 'logger'      # Logs debug statements
+require 'yaml'
 
 set :port, 3000
 set :bind, '0.0.0.0'
@@ -134,38 +135,14 @@ class GHAapp < Sinatra::Application
         context: 'site-preview',
       })
 
-      # Copy Jekyll Gemfile to repo if not already present
-      chdir_to_repos
-      unless File.exists?("#{@full_repo_name}/Gemfile")
-        FileUtils.cp('../resources/Gemfile.jekyll', "#{@full_repo_name}/Gemfile")
+      if @full_repo_name == "eecs485staff/primer-spec"
+        success = build_primer_spec_pr_site(head_sha, pull_request_num)
+      else
+        success = build_jekyll_site(head_sha, pull_request_num)
       end
-      
-      chdir_to_repos
-      Dir.chdir(@full_repo_name)
 
       # Build the Jekyll site
-      logs = `bundle install`
-      if $?.exitstatus != 0
-        logger.debug "bundle install. Logs:"
-        logger.debug logs
-        update_gh_commit_status(head_sha, {
-          state: 'failure',
-          description: 'Site Preview build failed (while installing dependencies)',
-          context: 'site-preview',
-        })
-      end
-
-      Dir.chdir @site_location
-      logs = `bundle exec jekyll build --baseurl #{build_preview_baseurl(@full_repo_name, pull_request_num)}`
-      if $?.exitstatus != 0
-        logger.debug "Jekyll build failed. Logs:"
-        logger.debug logs
-        update_gh_commit_status(head_sha, {
-          state: 'failure',
-          description: 'Site Preview build failed',
-          context: 'site-preview',
-        })
-      else
+      if success
         logger.debug "Jekyll build succeeded"
 
         # Create the deploy directory
@@ -214,6 +191,92 @@ class GHAapp < Sinatra::Application
       @git.checkout(ref)
     end
 
+    def build_jekyll_site(head_sha, pull_request_num)
+      logger.debug "Building jekyll site"
+
+      # Copy Jekyll Gemfile to repo if not already present
+      chdir_to_repos
+      unless File.exists?("#{@full_repo_name}/Gemfile")
+        FileUtils.cp('../resources/Gemfile.jekyll', "#{@full_repo_name}/Gemfile")
+      end
+      
+      chdir_to_repos
+      Dir.chdir(@full_repo_name)
+
+      # Build the Jekyll site
+      return unless install_bundle_deps(head_sha)
+      logger.debug "Bundle deps installed"
+      
+      Dir.chdir @site_location
+      update_config_site_url(full_repo_name, pull_request_num)
+      logger.debug "Site URL updated in config"
+
+      logs = `bundle exec jekyll build`
+      if $?.exitstatus != 0
+        logger.debug "Jekyll build failed. Logs:"
+        logger.debug logs
+        update_gh_commit_status(head_sha, {
+          state: 'failure',
+          description: 'Site Preview build failed',
+          context: 'site-preview',
+        })
+      end
+      return $?.exitstatus == 0
+    end
+
+    def build_primer_spec_pr_site(head_sha, pull_request_num)
+      logger.debug "Building Primer Spec PR"
+
+      chdir_to_repos
+      Dir.chdir(@full_repo_name)
+      return unless install_bundle_deps(head_sha)
+      logger.debug "Bundle deps installed"
+
+      Dir.chdir @site_location
+      update_config_site_url(pull_request_num)
+      logger.debug "Site URL updated in config"
+
+      logs = `script/ci-site-preview-build #{build_preview_url(@full_repo_name, @pull_request_num)}`
+      if $?.exitstatus != 0
+        logger.debug "Jekyll build failed. Logs:"
+        logger.debug logs
+        update_gh_commit_status(head_sha, {
+          state: 'failure',
+          description: 'Site Preview build failed',
+          context: 'site-preview',
+        })
+      end
+      return $?.exitstatus == 0
+    end
+
+    def install_bundle_deps(head_sha)
+      logs = `bundle install`
+      if $?.exitstatus != 0
+        logger.debug "bundle install. Logs:"
+        logger.debug logs
+        update_gh_commit_status(head_sha, {
+          state: 'failure',
+          description: 'Site Preview build failed (while installing dependencies)',
+          context: 'site-preview',
+        })
+        return false
+      end
+    end
+
+    def update_config_site_url(full_repo_name, pull_request_num)
+      config = {}
+      if File.exists? '_config.yml'
+        config = YAML.load_file('_config.yml')
+      end
+      if not config['site']
+        config['site'] = {}
+      end
+      config['site']['url'] = build_preview_url(full_repo_name, pull_request_num)
+      File.open('_config.yml','w') do |h| 
+        h.write config.to_yaml
+     end
+    end
+
     def chdir_to_repos
       Dir.chdir("#{__dir__}/repos")
     end
@@ -224,10 +287,6 @@ class GHAapp < Sinatra::Application
 
     def build_preview_url(full_repo_name, pull_request_num)
       "#{DEPLOY_URL}/previews/#{full_repo_name}/#{pull_request_num}/"
-    end
-
-    def build_preview_baseurl(full_repo_name, pull_request_num)
-      "/previews/#{full_repo_name}/#{pull_request_num}/"
     end
 
     def update_gh_commit_status(sha, payload)
