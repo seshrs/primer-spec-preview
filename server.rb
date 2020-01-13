@@ -236,8 +236,8 @@ class GHAapp < Sinatra::Application
       update_config_site_url(@full_repo_name, pull_request_num)
       logger.debug "Site URL updated in config"
 
-      logger.debug "Executing command: script/ci-site-preview-build \"#{build_preview_url(@full_repo_name, @pull_request_num)}\""
-      logs = `script/ci-site-preview-build \"#{build_preview_url(@full_repo_name, @pull_request_num)}\"`
+      logger.debug "Executing command: script/ci-site-preview-build \"#{build_preview_url(@full_repo_name, pull_request_num)}\""
+      logs = `script/ci-site-preview-build \"#{build_preview_url(@full_repo_name, pull_request_num)}\"`
       if $?.exitstatus != 0
         logger.debug "Jekyll build failed. Logs:"
         logger.debug logs
