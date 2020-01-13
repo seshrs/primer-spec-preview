@@ -220,8 +220,9 @@ class GHAapp < Sinatra::Application
           description: 'Site Preview build failed',
           context: 'site-preview',
         })
+        return false
       end
-      return $?.exitstatus == 0
+      return true
     end
 
     def build_primer_spec_pr_site(head_sha, pull_request_num)
@@ -245,8 +246,9 @@ class GHAapp < Sinatra::Application
           description: 'Site Preview build failed',
           context: 'site-preview',
         })
+        return false
       end
-      return $?.exitstatus == 0
+      return true
     end
 
     def install_bundle_deps(head_sha)
@@ -261,6 +263,7 @@ class GHAapp < Sinatra::Application
         })
         return false
       end
+      return true
     end
 
     def update_config_site_url(full_repo_name, pull_request_num)
