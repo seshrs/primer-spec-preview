@@ -208,7 +208,7 @@ class GHAapp < Sinatra::Application
       logger.debug "Bundle deps installed"
       
       Dir.chdir @site_location
-      update_config_site_url(full_repo_name, pull_request_num)
+      update_config_site_url(@full_repo_name, pull_request_num)
       logger.debug "Site URL updated in config"
 
       logs = `bundle exec jekyll build`
@@ -234,7 +234,7 @@ class GHAapp < Sinatra::Application
       logger.debug "Bundle deps installed"
 
       Dir.chdir @site_location
-      update_config_site_url(pull_request_num)
+      update_config_site_url(@full_repo_name, pull_request_num)
       logger.debug "Site URL updated in config"
 
       logs = `script/ci-site-preview-build #{build_preview_url(@full_repo_name, @pull_request_num)}`
