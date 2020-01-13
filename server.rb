@@ -154,7 +154,6 @@ class GHAapp < Sinatra::Application
         # Copy the build artifacts
         chdir_to_repos
         FileUtils.cp_r("#{@full_repo_name}/#{@site_location}/_site/.", preview_dir)
-        FileUtils.rm("#{@full_repo_name}/Gemfile")
         
         # Mark the status as successful
         update_gh_commit_status(head_sha, {
@@ -195,8 +194,10 @@ class GHAapp < Sinatra::Application
 
       # Copy Jekyll Gemfile to repo if not already present
       chdir_to_repos
+      delete_gemfile = false
       unless File.exists?("#{@full_repo_name}/Gemfile")
         FileUtils.cp('../resources/Gemfile.jekyll', "#{@full_repo_name}/Gemfile")
+        delete_gemfile = true
       end
       
       chdir_to_repos
@@ -205,6 +206,10 @@ class GHAapp < Sinatra::Application
       # Build the Jekyll site
       return unless install_bundle_deps(head_sha)
       logger.debug "Bundle deps installed"
+
+      if delete_gemfile
+        FileUtils.rm("Gemfile")
+      end
       
       Dir.chdir @site_location
       update_config_site_url(@full_repo_name, pull_request_num)
@@ -271,10 +276,7 @@ class GHAapp < Sinatra::Application
       if File.exists? '_config.yml'
         config = YAML.load_file('_config.yml')
       end
-      if not config['site']
-        config['site'] = {}
-      end
-      config['site']['url'] = build_preview_url(full_repo_name, pull_request_num)
+      config['url'] = build_preview_url(full_repo_name, pull_request_num)
       File.open('_config.yml','w') do |h| 
         h.write config.to_yaml
      end
