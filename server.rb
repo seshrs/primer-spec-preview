@@ -207,17 +207,14 @@ class GHAapp < Sinatra::Application
       # Build the Jekyll site
       return unless install_bundle_deps(head_sha)
       logger.debug "Bundle deps installed"
-
-      if delete_gemfile
-        FileUtils.rm("Gemfile")
-      end
       
       Dir.chdir @site_location
       update_config_site_url(@full_repo_name, pull_request_num)
       logger.debug "Site URL updated in config"
 
       logs = `bundle exec jekyll build`
-      if $?.exitstatus != 0
+      success = $?.exitstatus == 0
+      unless success
         logger.debug "Jekyll build failed. Logs:"
         logger.debug logs
         update_gh_commit_status(head_sha, {
@@ -225,9 +222,11 @@ class GHAapp < Sinatra::Application
           description: 'Site Preview build failed',
           context: 'site-preview',
         })
-        return false
       end
-      return true
+      if delete_gemfile
+        FileUtils.rm("Gemfile")
+      end
+      return success
     end
 
     def build_primer_spec_pr_site(head_sha, pull_request_num)
