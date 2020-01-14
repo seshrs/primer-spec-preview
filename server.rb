@@ -89,6 +89,8 @@ class GHAapp < Sinatra::Application
     when 'pull_request'
       if @payload['action'] == 'opened' || @payload['action'] == 'reopened' || @payload['action'] == 'synchronize'
         init_site_preview
+      elsif @payload['action'] == 'closed'
+        delete_site_preview
       end
     end
 
@@ -164,6 +166,19 @@ class GHAapp < Sinatra::Application
           target_url: build_preview_url(@full_repo_name, pull_request_num),
         })
       end
+    end
+
+    def delete_site_preview
+      logger.debug 'Deleting site preview'
+
+      repository       = @payload['repository']['name']
+      pull_request_num = @payload['pull_request']['number']
+
+      return unless is_number?(pull_request_num)
+
+      chdir_to_previews
+      FileUtils.remove_dir "#{@full_repo_name}/#{pull_request_num}", :force => true
+      logger.debug 'Done deleting preview'
     end
 
     # Clones the repository to the repos directory, updates the
@@ -284,6 +299,10 @@ class GHAapp < Sinatra::Application
 
     def chdir_to_repos
       Dir.chdir("#{__dir__}/repos")
+    end
+
+    def chdir_to_previews
+      Dir.chdir("#{__dir__}/previews")
     end
 
     def is_number?(string)
