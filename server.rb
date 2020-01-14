@@ -116,17 +116,6 @@ class GHAapp < Sinatra::Application
       clone_repository(@full_repo_name, repository, head_sha)
       chdir_to_repos
 
-      # Check for changes that warrant a site preview
-      jekyll_site_filenames = ['.html', '.htm', '.md', '.jpg', '.png']
-      Dir.chdir(@full_repo_name)
-      files_changed = `git diff --name-only #{head_sha} #{base_sha}`.split
-      site_preview_warranted = files_changed.any? { |file|
-        jekyll_site_filenames.any? { |jekyll_site_filename|
-          file.include?(jekyll_site_filename)
-        }
-      }
-      return unless site_preview_warranted
-
       # Prepare to generate the Site Preview
 
       update_gh_commit_status(head_sha, {
@@ -138,6 +127,18 @@ class GHAapp < Sinatra::Application
       if @full_repo_name == "eecs485staff/primer-spec"
         success = build_primer_spec_pr_site(head_sha, pull_request_num)
       else
+        # Check for changes that warrant a site preview
+        jekyll_site_filenames = ['.html', '.htm', '.md', '.jpg', '.png']
+        Dir.chdir(@full_repo_name)
+        files_changed = `git diff --name-only #{head_sha} #{base_sha}`.split
+        site_preview_warranted = files_changed.any? { |file|
+          jekyll_site_filenames.any? { |jekyll_site_filename|
+            file.include?(jekyll_site_filename)
+          }
+        }
+        return unless site_preview_warranted
+
+        chdir_to_repos
         success = build_jekyll_site(head_sha, pull_request_num)
       end
 
