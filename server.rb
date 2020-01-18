@@ -201,6 +201,7 @@ class GHAapp < Sinatra::Application
       end
       # Checkout the specified commit
       Dir.chdir(full_repo_name)
+      @git.reset_hard
       @git.fetch
       @git.checkout(ref)
     end
