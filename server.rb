@@ -98,6 +98,11 @@ class GHAapp < Sinatra::Application
   end
 
 
+  get '/robots.txt' do
+    "User-Agent: *\nDisallow: /"
+  end
+
+
   helpers do
 
     # Begin the Site Preview process
