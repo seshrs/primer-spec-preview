@@ -202,6 +202,9 @@ class GHAapp < Sinatra::Application
         @git = Git.clone("https://x-access-token:#{@installation_token.to_s}@github.com/#{full_repo_name}.git", repository)
         chdir_to_repos
       else
+        Dir.chdir(full_repo_name)
+        `git remote remove origin`
+        `git remote add origin "https://x-access-token:#{@installation_token.to_s}@github.com/#{full_repo_name}.git"`
         @git = Git.open(full_repo_name)
       end
       # Checkout the specified commit
