@@ -248,8 +248,9 @@ class GHAapp < Sinatra::Application
           context: 'site-preview',
         })
       end
-      if delete_gemfile
-        FileUtils.rm("Gemfile")
+      chdir_to_repos
+      if delete_gemfile && File.exists?("#{@full_repo_name}/Gemfile")
+        FileUtils.rm("#{@full_repo_name}/Gemfile")
       end
       return success
     end
