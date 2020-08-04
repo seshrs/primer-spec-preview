@@ -3,6 +3,7 @@ source 'https://rubygems.org'
 gem 'jekyll-seo-tag'
 gem 'jekyll-remote-theme'
 gem 'jekyll-github-metadata'
+gem 'jekyll-optional-front-matter'
 
 # jekyll-remote-theme doesn't support jekyll 4.0 yet
 gem 'jekyll', '<4.0'
