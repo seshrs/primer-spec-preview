@@ -301,6 +301,9 @@ class GHAapp < Sinatra::Application
       config = {}
       if File.exists? '_config.yml'
         config = YAML.load_file('_config.yml')
+      else
+        config['remote_theme'] = 'pages-themes/primer'
+        config['plugins'] = ['jekyll-remote-theme']
       end
       config['url'] = build_preview_url(full_repo_name, pull_request_num)
       File.open('_config.yml','w') do |h| 
