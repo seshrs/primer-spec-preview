@@ -143,10 +143,17 @@ class GHAapp < Sinatra::Application
             file.include?(jekyll_site_filename)
           }
         }
-        return unless site_preview_warranted
-
-        chdir_to_repos
-        success = build_jekyll_site(head_sha, pull_request_num)
+        if site_preview_warranted
+          chdir_to_repos
+          success = build_jekyll_site(head_sha, pull_request_num)
+        else
+          update_gh_commit_status(head_sha, {
+            state: 'success',
+            description: 'No Site Preview built.',
+            context: 'site-preview',
+          })
+          return
+        end
       end
 
       if success
