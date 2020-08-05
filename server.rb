@@ -321,7 +321,8 @@ class GHAapp < Sinatra::Application
           'jekyll-remote-theme',
           'jekyll-optional-front-matter',
           'jekyll-readme-index',
-          'jekyll-relative-links'
+          'jekyll-relative-links',
+          'jekyll-default-layout'
         ]
       end
       config['url'] = build_preview_url(full_repo_name, pull_request_num)
