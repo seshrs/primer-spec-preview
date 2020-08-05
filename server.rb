@@ -234,6 +234,10 @@ class GHAapp < Sinatra::Application
       logger.debug "Bundle deps installed"
       
       Dir.chdir @site_location
+      delete_config_file = false
+      unless File.exists?("_config.yml")
+        delete_config_file = true
+      end
       update_config_site_url(@full_repo_name, pull_request_num)
       logger.debug "Site URL updated in config"
 
@@ -251,6 +255,9 @@ class GHAapp < Sinatra::Application
       chdir_to_repos
       if delete_gemfile && File.exists?("#{@full_repo_name}/Gemfile")
         FileUtils.rm("#{@full_repo_name}/Gemfile")
+      end
+      if delete_config_file && File.exists?("#{@site_location}/_config.yml")
+        FileUtils.rm("#{@site_location}/_config.yml")
       end
       return success
     end
