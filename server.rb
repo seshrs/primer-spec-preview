@@ -327,6 +327,7 @@ class GHAapp < Sinatra::Application
           'jekyll-relative-links',
           'jekyll-default-layout'
         ]
+        config['kramdown'] = {'input': 'GFM'}
       end
       config['url'] = build_preview_url(full_repo_name, pull_request_num)
       config['baseurl'] = build_preview_base_url(full_repo_name, pull_request_num)
