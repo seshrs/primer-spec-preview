@@ -263,7 +263,7 @@ class GHAapp < Sinatra::Application
       if delete_gemfile && File.exists?("#{@full_repo_name}/Gemfile")
         FileUtils.rm("#{@full_repo_name}/Gemfile")
       end
-      
+
       Dir.chdir(@full_repo_name)
       Dir.chdir(@site_location)
       if delete_config_file && File.exists?("_config.yml")
@@ -329,6 +329,7 @@ class GHAapp < Sinatra::Application
         ]
       end
       config['url'] = build_preview_url(full_repo_name, pull_request_num)
+      config['baseurl'] = build_preview_base_url(full_repo_name, pull_request_num)
       File.open('_config.yml','w') do |h| 
         h.write config.to_yaml
      end
@@ -348,6 +349,10 @@ class GHAapp < Sinatra::Application
 
     def build_preview_url(full_repo_name, pull_request_num)
       "#{DEPLOY_URL}/previews/#{full_repo_name}/#{pull_request_num}/"
+    end
+
+    def build_preview_base_url(full_repo_name, pull_request_num)
+      "previews/#{full_repo_name}/#{pull_request_num}/"
     end
 
     def update_gh_commit_status(sha, payload)
