@@ -263,7 +263,9 @@ class GHAapp < Sinatra::Application
       if delete_gemfile && File.exists?("#{@full_repo_name}/Gemfile")
         FileUtils.rm("#{@full_repo_name}/Gemfile")
       end
-      Dir.chdir @site_location
+      
+      Dir.chdir(@full_repo_name)
+      Dir.chdir(@site_location)
       if delete_config_file && File.exists?("_config.yml")
         FileUtils.rm("#{@site_location}/_config.yml")
       end
