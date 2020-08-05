@@ -3,7 +3,10 @@ source 'https://rubygems.org'
 gem 'jekyll-seo-tag'
 gem 'jekyll-remote-theme'
 gem 'jekyll-github-metadata'
+# The following plugins are enabled on GitHub Pages without an _config.yml.
 gem 'jekyll-optional-front-matter'
+gem 'jekyll-readme-index'
+gem 'jekyll-relative-links'
 
 # jekyll-remote-theme doesn't support jekyll 4.0 yet
 gem 'jekyll', '<4.0'
