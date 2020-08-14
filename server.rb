@@ -311,6 +311,18 @@ class GHAapp < Sinatra::Application
         })
         return false
       end
+
+      logs = `bundle update`
+      if $?.exitstatus != 0
+        logger.debug "bundle update. Logs:"
+        logger.debug logs
+        update_gh_commit_status(head_sha, {
+          state: 'failure',
+          description: 'Site Preview build failed (while updating dependencies)',
+          context: 'site-preview',
+        })
+        return false
+      end
       return true
     end
 
