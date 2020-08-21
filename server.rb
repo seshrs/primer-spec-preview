@@ -228,10 +228,8 @@ class GHAapp < Sinatra::Application
 
       # Copy Jekyll Gemfile to repo if not already present
       chdir_to_repos
-      delete_gemfile = false
       unless File.exists?("#{@full_repo_name}/Gemfile")
         FileUtils.cp('../resources/Gemfile.jekyll', "#{@full_repo_name}/Gemfile")
-        delete_gemfile = true
       end
       
       chdir_to_repos
@@ -242,10 +240,6 @@ class GHAapp < Sinatra::Application
       logger.debug "Bundle deps installed"
       
       Dir.chdir @site_location
-      delete_config_file = false
-      unless File.exists?("_config.yml")
-        delete_config_file = true
-      end
       update_config_site_url(@full_repo_name, pull_request_num)
       logger.debug "Site URL updated in config"
 
@@ -261,15 +255,9 @@ class GHAapp < Sinatra::Application
         })
       end
       chdir_to_repos
-      if delete_gemfile && File.exists?("#{@full_repo_name}/Gemfile")
-        FileUtils.rm("#{@full_repo_name}/Gemfile")
-      end
 
       Dir.chdir(@full_repo_name)
       Dir.chdir(@site_location)
-      if delete_config_file && File.exists?("_config.yml")
-        FileUtils.rm("#{@site_location}/_config.yml")
-      end
       return success
     end
 
