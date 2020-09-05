@@ -116,8 +116,8 @@ class GHAapp < Sinatra::Application
       base_repo_id     = @payload['pull_request']['base']['repo']['id']
       pull_request_num = @payload['pull_request']['number']
 
-      # Verify that head and base are in same repo (no forks)
-      return unless head_repo_id == base_repo_id
+      # ~~Verify that head and base are in same repo (no forks)~~
+      # return unless head_repo_id == base_repo_id
       return unless is_number?(pull_request_num)
 
       clone_repository(@full_repo_name, repository, head_sha)
