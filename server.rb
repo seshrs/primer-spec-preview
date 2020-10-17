@@ -269,6 +269,9 @@ class GHAapp < Sinatra::Application
       return unless install_bundle_deps(head_sha)
       logger.debug "Bundle deps installed"
 
+      return unless install_npm_deps_primer_spec(head_sha)
+      logger.debug "npm deps installed"
+
       Dir.chdir @site_location
       update_config_site_url(@full_repo_name, pull_request_num)
       logger.debug "Site URL updated in config"
@@ -308,6 +311,22 @@ class GHAapp < Sinatra::Application
         update_gh_commit_status(head_sha, {
           state: 'failure',
           description: 'Site Preview build failed (while updating dependencies)',
+          context: 'site-preview',
+        })
+        return false
+      end
+      return true
+    end
+
+    def install_npm_deps_primer_spec(head_sha)
+      # This is only relevant for Primer Spec PR preview builds
+      logs = `npm install`
+      if $?.exitstatus != 0
+        logger.debug "npm install failed. Logs:"
+        logger.debug logs
+        update_gh_commit_status(head_sha, {
+          state: 'failure',
+          description: 'Site Preview build failed (while installing npm dependencies)',
           context: 'site-preview',
         })
         return false
