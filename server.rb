@@ -23,7 +23,6 @@ set :bind, '0.0.0.0'
 
 # The main Sinatra Application
 class GHAapp < Sinatra::Application
-  set :public_folder, File.dirname(__FILE__) + '/previews'
 
   # Expects that the private key in PEM format. Converts the newlines
   PRIVATE_KEY =
@@ -49,6 +48,32 @@ class GHAapp < Sinatra::Application
   # Turn on Sinatra's verbose logging during development
   configure :development do
     set :logging, Logger::DEBUG
+  end
+
+
+  # Custom preview routing logic (because we need to add trailing slashes if needed)
+  get '/previews/*' do |splat|
+    previewsPath = File.dirname(__FILE__) + "/previews"
+    path = "#{previewsPath}/#{splat}"
+    normalized_path = `realpath #{path}`
+    return 404 unless normalized_path.start_with?(previewsPath)
+    unless File.directory?(path)
+      return send_file(path)
+    end
+
+    # If it's a directory, check whether to add trailing slash
+    unless path.end_with?('/')
+      return redirect to(request.path_info + '/')
+    end
+
+    # Serve either index.html or index.htm
+    if File.exist?("#{path}/index.html")
+      return send_file("#{path}/index.html")
+    elsif File.exist?("#{path}/index.htm")
+      return send_file("#{path}/index.htm")
+    else
+      return 404
+    end
   end
 
 
