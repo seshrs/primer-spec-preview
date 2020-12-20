@@ -50,6 +50,11 @@ class GHAapp < Sinatra::Application
     set :logging, Logger::DEBUG
   end
 
+  
+  get '/' do
+    redirect to("https://github.com/apps/primer-spec-preview")
+  end
+
 
   # Custom preview routing logic (because we need to add trailing slashes if needed)
   get '/previews/*' do |splat|
