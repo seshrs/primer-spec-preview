@@ -44,6 +44,11 @@ class GHAapp < Sinatra::Application
   WHITELISTED_REPOS = JSON.parse ENV['WHITELISTED_REPOS']
   puts "Whitelisted Repos:"
   puts WHITELISTED_REPOS.inspect
+
+  # This is a mapping of repo paths to Primer Spec Preview app secrets.
+  # Every call to the /upload endpoint must include the appropriate secret.
+  # {[repo: string]: string}
+  UPLOAD_APP_SECRETS = JSON.parse ENV['UPLOAD_APP_SECRETS']
   
   # Turn on Sinatra's verbose logging during development
   configure :development do
@@ -79,6 +84,46 @@ class GHAapp < Sinatra::Application
     else
       return 404
     end
+  end
+
+
+  post '/upload-site-preview' do
+    # Verify that the app secret is valid
+    @full_repo_name = params[:repo]
+    app_secret = params[:app_secret]
+    pr_number = params[:pr_number]
+
+    puts "/upload-site-preview: called with #{@full_repo_name}, #{app_secret}, #{pr_number}"
+
+    unless @full_repo_name && app_secret && pr_number && UPLOAD_APP_SECRETS.key?(@full_repo_name) && UPLOAD_APP_SECRETS[@full_repo_name] == app_secret
+      puts "  invalid request, returning 403"
+      return 403
+    end
+
+    unless is_number?(pr_number)
+      puts "  Not a valid PR number: #{pr_number}"
+      return 400
+    end
+
+    # Check that a .tar.gz file is included
+    unless params[:site] &&
+      (tmpfile = params[:site][:tempfile]) &&
+      (name = params[:site][:filename]) &&
+      name.end_with?('.tar.gz')
+      puts "Bad file uploaded"
+      return 400
+    end
+
+    # Extract files and place them in correct static dir
+    chdir_to_previews
+    preview_dir = "#{@full_repo_name}/#{pr_number}"
+    FileUtils.mkdir_p(preview_dir)
+    Dir.chdir preview_dir
+    `rm -rf ./*`
+
+    File.open('_site.tar.gz', 'wb') {|f| f.write tmpfile.read }
+    `tar -xzf _site.tar.gz `
+    FileUtils.rm('_site.tar.gz')
   end
 
 
