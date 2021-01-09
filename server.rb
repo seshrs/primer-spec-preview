@@ -61,6 +61,28 @@ class GHAapp < Sinatra::Application
   end
 
 
+  # Default route handler: Check if we actually need to serve an asset from a
+  # site preview. If not, return 404.
+  # For instance:
+  #   request URL: /assets/fonts/custom.ttf?t9kuy8
+  #   HTTP referrer: https://preview.seshrs.ml/previews/eecs280staff/eecs280.org/168/assets/css/style.css
+  # Then redirect to:
+  #   /previews/eecs280staff/eecs280.org/168/assets/fonts/custom.ttf?t9kuy8
+  before '/*' do
+    pass if request.referrer.nil?
+    pass if request.path_info.start_with?("/previews")
+
+    matchPattern = /(https:\/\/preview\.seshrs\.ml)?\/previews\/([A-za-z0-9\-\.]+\/[A-za-z0-9\-\.]+)\/(\d+)(.*)/
+    match = request.referrer.match(matchPattern)
+    pass if match.nil?
+
+    _, repo, pr, _ = match.captures
+    newPath = "/previews/#{repo}/#{pr}#{request.path_info}"
+    puts "Changing request path for #{request.path_info} to #{newPath}"
+    request.path_info = newPath
+  end
+
+
   # Custom preview routing logic (because we need to add trailing slashes if needed)
   get '/previews/*' do |splat|
     previewsPath = File.dirname(__FILE__) + "/previews"
