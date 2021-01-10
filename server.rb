@@ -61,12 +61,12 @@ class GHAapp < Sinatra::Application
   end
 
 
-  # Default route handler: Check if we actually need to serve an asset from a
-  # site preview. If not, return 404.
+  # Default route filter: Check if we actually need to serve an asset from a
+  # site preview. If not, do nothing.
   # For instance:
   #   request URL: /assets/fonts/custom.ttf?t9kuy8
   #   HTTP referrer: https://preview.seshrs.ml/previews/eecs280staff/eecs280.org/168/assets/css/style.css
-  # Then redirect to:
+  # Then internally "redirect" to:
   #   /previews/eecs280staff/eecs280.org/168/assets/fonts/custom.ttf?t9kuy8
   before '/*' do
     pass if request.referrer.nil?
