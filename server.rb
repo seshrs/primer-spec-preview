@@ -122,10 +122,11 @@ class GHAapp < Sinatra::Application
       return 403
     end
 
-    unless is_number?(pr_number)
-      puts "  Not a valid PR number: #{pr_number}"
+    unless pr_number.length < 20
+      puts "  PR number should be <20 chars long; received: #{pr_number}"
       return 400
     end
+    pr_number.gsub!(/[^0-9A-Za-z.\-]/, '_')
 
     # Check that a .tar.gz file is included
     unless params[:site] &&
