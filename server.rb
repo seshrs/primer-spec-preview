@@ -78,8 +78,8 @@ class GHAapp < Sinatra::Application
 
     _, repo, pr, _ = match.captures
     newPath = "/previews/#{repo}/#{pr}#{request.path_info}"
-    puts "Changing request path for #{request.path_info} to #{newPath}"
-    request.path_info = newPath
+    puts "Redirecting from #{request.path_info} to #{newPath}"
+    redirect to(newPath)
   end
 
 
