@@ -65,14 +65,14 @@ class GHAapp < Sinatra::Application
   # site preview. If not, do nothing.
   # For instance:
   #   request URL: /assets/fonts/custom.ttf?t9kuy8
-  #   HTTP referrer: https://preview.seshrs.ml/previews/eecs280staff/eecs280.org/168/assets/css/style.css
+  #   HTTP referrer: https://preview.sesh.rs/previews/eecs280staff/eecs280.org/168/assets/css/style.css
   # Then internally "redirect" to:
   #   /previews/eecs280staff/eecs280.org/168/assets/fonts/custom.ttf?t9kuy8
   before '/*' do
     pass if request.referrer.nil?
     pass if request.path_info.start_with?("/previews")
 
-    matchPattern = /(https:\/\/preview\.seshrs\.ml)?\/previews\/([A-za-z0-9\-\.]+\/[A-za-z0-9\-\.]+)\/(\d+)(.*)/
+    matchPattern = /(https:\/\/preview\.sesh\.rs)?\/previews\/([A-za-z0-9\-\.]+\/[A-za-z0-9\-\.]+)\/(\d+)(.*)/
     match = request.referrer.match(matchPattern)
     pass if match.nil?
 
