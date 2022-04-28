@@ -6,7 +6,7 @@ GEM
     dotenv (2.5.0)
     faraday (0.15.3)
       multipart-post (>= 1.2, < 3)
-    git (1.7.0)
+    git (1.11.0)
       rchardet (~> 1.8)
     jwt (2.1.0)
     multipart-post (2.0.0)
