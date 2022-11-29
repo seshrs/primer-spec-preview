@@ -89,6 +89,10 @@ class GHAapp < Sinatra::Application
     path = "#{previewsPath}/#{splat}"
     normalized_path = `realpath #{path}`
     return 404 unless normalized_path.start_with?(previewsPath)
+
+    # Allow any website to embed files from the Preview directory
+    headers 'Access-Control-Allow-Origin' => '*'
+
     unless File.directory?(path)
       return send_file(path)
     end
