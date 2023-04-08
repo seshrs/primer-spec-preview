@@ -82,7 +82,7 @@ class GHAapp < Sinatra::Application
       path = "#{previewsPath}#{request.path_info}"
       
       pass if File.directory?(path)
-      newPath = request.path_info.delete_prefix('/pages/')
+      newPath = request.path_info.delete_prefix('/pages')
       puts "[pages] Redirecting from #{request.path_info} to #{newPath}"
       redirect to(newPath)
     end
