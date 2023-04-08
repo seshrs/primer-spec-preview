@@ -76,8 +76,18 @@ class GHAapp < Sinatra::Application
     match = request.referrer.match(matchPattern)
     pass if match.nil?
 
+    requestPath = request.path_info
+    # If the path starts with `/pages/*` and that path doesn't exist, remove it
+    if requestPath.start_with?('/pages/')
+      previewsPath = File.dirname(__FILE__) + "/previews"
+      path = "#{previewsPath}#{requestPath}"
+      
+      pass if File.directory?(path)
+      requestPath = requestPath.delete_prefix('/pages/')
+    end
+
     _, repo, pr, _ = match.captures
-    newPath = "/previews/#{repo}/#{pr}#{request.path_info}"
+    newPath = "/previews/#{repo}/#{pr}#{requestPath}"
     puts "Redirecting from #{request.path_info} to #{newPath}"
     redirect to(newPath)
   end
